@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">NMedia</string>
     <string name="hmedia">HMedia</string>
+    <string name="description_post_author_avatar">Post author avatar</string>
+    <string name="description_post_menu">Post menu</string>
+    <string name="description_post_favorite">Post favorite</string>
+    <string name="description_post_comment">Post comment</string>
+    <string name="description_post_repost">Post repost</string>
+    <string name="description_post_view">Post view</string>
 </resources>
