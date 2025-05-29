@@ -17,7 +17,7 @@
         app:layout_constraintBottom_toBottomOf="@id/barrier_top"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@sample/posts_avatars" />
+        android:src="@drawable/ic_avatar_48dp" />
 
     <TextView
         android:id="@+id/author"
@@ -183,5 +183,5 @@
         app:layout_constraintTop_toBottomOf="@id/barrier_bottom"
         app:layout_constraintTop_toTopOf="@id/views"
         tools:text="12,4K" />
-    
+
 </androidx.constraintlayout.widget.ConstraintLayout>
