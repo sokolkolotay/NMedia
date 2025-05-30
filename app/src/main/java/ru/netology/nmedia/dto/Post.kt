@@ -7,7 +7,7 @@ data class Post(
     val content: String,
     var likes: Int = 999,
     var comments: Int = 150_435,
-    var reposts: Int = 1_898,
+    var reposts: Int = 6_399,
     var views: Int = 9_599_211,
     var likeByMe: Boolean = false
 )

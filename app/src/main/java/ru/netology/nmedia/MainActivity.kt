@@ -8,13 +8,21 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import ru.netology.nmedia.databinding.ActivityMainBinding
 import ru.netology.nmedia.dto.Post
+import kotlin.math.floor
 
 private fun formatCount(count: Int): String {
     return when {
         count < 1_000 -> count.toString()
-        count < 10_000 -> String.format("%.1fK", count / 1_000.0).replace(".0", "")
+        count < 10_000 -> {
+            val rounding = floor(count / 100.0) / 10
+            "${rounding}K".replace(".0", "")
+        }
+
         count < 1_000_000 -> "${count / 1_000}K"
-        else -> String.format("%.1fM", count / 1_000_000.0).replace(".0", "")
+        else -> {
+            val rounding = floor(count / 100_000.0) / 10
+            "${rounding}M".replace(".0", "")
+        }
     }
 }
 
