@@ -7,4 +7,12 @@
     <string name="description_post_comment">Post comment</string>
     <string name="description_post_repost">Post repost</string>
     <string name="description_post_view">Post view</string>
+    <string name="description_menu_remove">Remove</string>
+    <string name="post_text">Post Text</string>
+    <string name="error_empty_content">Content can\'t be empty</string>
+    <string name="menu_edit">Edit</string>
+    <string name="edit_message">Edit Message</string>
+    <string name="cancel_message_editing">Cancel message editing</string>
+    <string name="icon_editing">Icon Editing</string>
+    <string name="icon_smile">Icon Smile</string>
 </resources>

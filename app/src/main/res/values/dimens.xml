@@ -3,4 +3,7 @@
     <dimen name="common_spacing">16dp</dimen>
     <dimen name="posts_avatar_size">48dp</dimen>
     <dimen name="posts_count_size">4dp</dimen>
+    <dimen name="text_spacing">8dp</dimen>
+    <dimen name="edit_icon_margin">2dp</dimen>
+    <dimen name="margin_icon">10dp</dimen>
 </resources>
