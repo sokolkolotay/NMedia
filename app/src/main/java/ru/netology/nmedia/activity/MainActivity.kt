@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.cancelEdited.setOnClickListener {
             with(binding.content) {
+                viewModel.clearEdited()
                 binding.editGroup.visibility = View.GONE
                 setText("")
                 clearFocus()
