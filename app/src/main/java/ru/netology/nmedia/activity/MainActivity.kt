@@ -14,21 +14,6 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.AndroidUtils
 import kotlin.math.floor
 
-fun formatCount(count: Int): String {
-    return when {
-        count < 1_000 -> count.toString()
-        count < 10_000 -> {
-            val rounding = floor(count / 100.0) / 10
-            "${rounding}K".replace(".0", "")
-        }
-
-        count < 1_000_000 -> "${count / 1_000}K"
-        else -> {
-            val rounding = floor(count / 100_000.0) / 10
-            "${rounding}M".replace(".0", "")
-        }
-    }
-}
 
 class MainActivity : AppCompatActivity() {
 
@@ -56,7 +41,6 @@ class MainActivity : AppCompatActivity() {
                 override fun onRepostById(post: Post) {
                     viewModel.repost(post.id)
                 }
-
             }
         )
 
