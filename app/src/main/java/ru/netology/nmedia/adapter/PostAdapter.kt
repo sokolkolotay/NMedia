@@ -7,13 +7,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
-import ru.netology.nmedia.activity.formatCount
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.formatCount
 
-typealias OnLikeListener = (post: Post) -> Unit
-typealias OnShareListener = (post: Post) -> Unit
-typealias OnRemoveListener = (post: Post) -> Unit
 
 interface OnInteractionListener {
     fun onLikeById(post: Post)
@@ -46,18 +43,16 @@ class PostViewHolder(
         author.text = post.author
         content.text = post.content
         published.text = post.published
-        countFavorite.text = formatCount(post.likes)
-        countComment.text = formatCount(post.comments)
-        countRepost.text = formatCount(post.reposts)
-        countView.text = formatCount(post.views)
-
-        favorite.setImageResource(
-            if (post.likeByMe) {
-                R.drawable.ic_fill_favorite_24dp
-            } else {
-                R.drawable.ic_favorite_24dp
-            }
-        )
+        favorite.apply {
+            isChecked = post.likeByMe
+            text = formatCount(post.likes)
+        }
+        repost.apply {
+            text = formatCount(post.reposts)
+        }
+        views.apply {
+            text = formatCount(post.views)
+        }
 
         favorite.setOnClickListener {
             onInteractionListener.onLikeById(post)
