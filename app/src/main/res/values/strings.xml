@@ -15,4 +15,8 @@
     <string name="cancel_message_editing">Cancel message editing</string>
     <string name="icon_editing">Icon Editing</string>
     <string name="icon_smile">Icon Smile</string>
+    <string name="chooser_share_post">Share</string>
+    <string name="chooser_video_playback_application">Select video playback application</string>
+    <string name="add_Post">Add post</string>
+    <string name="ic_video_placeholder">Thumbnail Video</string>
 </resources>
