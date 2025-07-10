@@ -28,5 +28,13 @@
         <item name="layout_constraintHeight">40dp</item>
     </style>
 
+    <style name="Style.Player" parent="Widget.MaterialComponents.Button.TextButton.Icon">
+        <item name="iconTint">@color/gray</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="iconGravity">textStart</item>
+        <item name="textAllCaps">false</item>
+        <item name="iconSize">52dp</item>
+    </style>
+
 
 </resources>

@@ -1,6 +1,9 @@
 package ru.netology.nmedia.adapter
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
@@ -16,7 +19,7 @@ interface OnInteractionListener {
     fun onLikeById(post: Post)
     fun onRemoveById(post: Post)
     fun onEdit(post: Post)
-    fun onRepostById(post: Post)
+    fun onShare(post: Post)
 }
 
 class PostAdapter(
@@ -59,7 +62,7 @@ class PostViewHolder(
         }
 
         repost.setOnClickListener {
-            onInteractionListener.onRepostById(post)
+            onInteractionListener.onShare(post)
         }
 
         menu.setOnClickListener {
@@ -81,6 +84,18 @@ class PostViewHolder(
                     }
                 }
             }.show()
+        }
+
+        if (post.video.isNullOrBlank()) {
+            videoGroup.visibility = View.GONE
+        } else {
+            videoGroup.visibility = View.VISIBLE
+        }
+
+        playVideo.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
+            val chooser = Intent.createChooser(intent, binding.root.context.getString(R.string.chooser_video_playback_application))
+            binding.root.context.startActivity(chooser)// TODO пока здесь chooser не открывается
         }
     }
 }

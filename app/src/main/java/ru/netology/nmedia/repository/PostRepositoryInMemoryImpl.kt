@@ -12,9 +12,19 @@ class PostRepositoryInMemoryImpl : PostRepository {
             id = index++,
             author = "Нетология. Университет интернет-профессий будущего",
             published = "21 мая в 18:36",
+            content = "В новом выпуске задаем 10 глупых вопросов разработчику в команде беспилотных автомобилей в Yandex.",
+            likes = 999,
+            reposts = 6_379,
+            video = "https://rutube.ru/video/feff0eff063797d5f0aa01e94ce3b59f/"
+        ),
+        Post(
+            id = index++,
+            author = "Нетология. Университет интернет-профессий будущего",
+            published = "21 мая в 18:36",
             content = "Привет, это новая Нетология! Когда-то Нетология начиналась с интенсивов по онлайн-маркетингу. Затем появились курсы по дизайну, разработке, аналитике и управлению. Мы растём сами и помогаем расти студентам: от новичков до уверенных профессионалов. Но самое важное остаётся с нами: мы верим, что в каждом уже есть сила, которая заставляет хотеть больше, целиться выше, бежать быстрее. Наша миссия — помочь встать на путь роста и начать цепочку перемен → http://netolo.gy/fyb",
             likes = 999,
-            reposts = 6_379
+            reposts = 6_379,
+            video = null
         ),
         Post(
             id = index++,
@@ -22,7 +32,8 @@ class PostRepositoryInMemoryImpl : PostRepository {
             published = "18 сентября в 20:01",
             content = "Знаний хватит на всех: на следующей неделе разбираемся с разработкой мобильных приложений",
             likes = 999,
-            reposts = 6_379
+            reposts = 6_379,
+            video = null
         ),
         Post(
             id = index++,
@@ -30,7 +41,8 @@ class PostRepositoryInMemoryImpl : PostRepository {
             published = "01 января в 10:00",
             content = "Знаний хватит на всех: на следующей неделе разбираемся с разработкой мобильных приложений",
             likes = 100,
-            reposts = 2_879
+            reposts = 2_879,
+            video = null
         ),
         Post(
             id = index++,
@@ -38,7 +50,8 @@ class PostRepositoryInMemoryImpl : PostRepository {
             published = "23 декабря в 13:43",
             content = "Знаний хватит на всех: на следующей неделе разбираемся с разработкой мобильных приложений",
             likes = 1_020_000,
-            reposts = 20_239
+            reposts = 20_239,
+            video = null
         )
     )
 

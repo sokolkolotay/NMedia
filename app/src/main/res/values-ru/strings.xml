@@ -16,4 +16,8 @@
     <string name="cancel_message_editing">Отменить редактирование</string>
     <string name="icon_editing">Иконка редактирования</string>
     <string name="icon_smile">Смайлы</string>
+    <string name="chooser_share_post">Поделиться</string>
+    <string name="chooser_video_playback_application">Выберите приложение для воспроизведения видео</string>
+    <string name="add_Post">Добавить новый пост</string>
+    <string name="ic_video_placeholder">Эскиз видео</string>
 </resources>
