@@ -1,7 +1,5 @@
 package ru.netology.nmedia.adapter
 
-import android.content.Intent
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +18,7 @@ interface OnInteractionListener {
     fun onRemoveById(post: Post)
     fun onEdit(post: Post)
     fun onShare(post: Post)
+    fun onPlayVideo(post: Post)
 }
 
 class PostAdapter(
@@ -93,9 +92,7 @@ class PostViewHolder(
         }
 
         playVideo.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
-            val chooser = Intent.createChooser(intent, binding.root.context.getString(R.string.chooser_video_playback_application))
-            binding.root.context.startActivity(chooser)// TODO пока здесь chooser не открывается
+            onInteractionListener.onPlayVideo(post)
         }
     }
 }
