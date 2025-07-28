@@ -31,12 +31,13 @@ class NewPostFragment : Fragment() {
             false
         )
 
-        //работа с черновиком
-        val draft = viewModel.draft
-        if (draft != null) {
-            binding.edit.setText(draft)
-        } else {
-            arguments?.textArgs?.let(binding.edit::setText)
+        val initialContent = arguments?.textArgs ?: viewModel.draft ?: ""
+        viewModel.startEditing(initialContent)
+
+        viewModel.edited.observe(viewLifecycleOwner) { post ->
+            if (binding.edit.text.toString() != post.content) {
+                binding.edit.setText(post.content)
+            }
         }
 
         binding.save.setOnClickListener {

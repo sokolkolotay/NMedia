@@ -3,10 +3,12 @@ package ru.netology.nmedia.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositorySQLiteImpl
+import ru.netology.nmedia.repository.PostRepositoryImpl
 
 private val empty = Post(
     id = 0,
@@ -22,8 +24,8 @@ private val empty = Post(
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: PostRepository = PostRepositorySQLiteImpl(
-        AppDb.getInstance(application).postDao
+    private val repository: PostRepository = PostRepositoryImpl(
+        AppDb.getInstance(application).postDao()
     )
     val data = repository.get()
     val edited = MutableLiveData(empty)
@@ -44,10 +46,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        edited.value?.let {
-            repository.save(it)
+        edited.value?.let { post ->
+            viewModelScope.launch {
+                repository.save(post)
+            }
         }
-        edited.value = empty
+        clearEdited()
     }
 
     fun edit(post: Post) {
@@ -56,6 +60,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearEdited() {
         edited.value = empty
+        clearDraft()
     }
 
     //работа с черновиком
@@ -69,5 +74,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearDraft() {
         draftMain = null
+    }
+
+    fun startEditing(content: String?) {
+        if (content != null) {
+            edited.value = empty.copy(content = content)
+        } else {
+            // Новый пост — проверяем есть ли сохранённый черновик
+            edited.value = empty.copy(content = draftMain ?: "")
+        }
     }
 }
