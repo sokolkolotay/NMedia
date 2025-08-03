@@ -20,4 +20,9 @@
     <string name="chooser_video_playback_application">Выберите приложение для воспроизведения видео</string>
     <string name="add_Post">Добавить новый пост</string>
     <string name="ic_video_placeholder">Эскиз видео</string>
+    <string name="google_play_unavailable">Google Api Недоступно</string>
+    <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
+    <string name="channel_remote_name">Уведомления с сервера</string>
+    <string name="channel_remote_description">Уведомления с удалённого сервера</string>
+    <string name="notification_new_post">Пользователь %1$s добавил новый пост:</string>
 </resources>

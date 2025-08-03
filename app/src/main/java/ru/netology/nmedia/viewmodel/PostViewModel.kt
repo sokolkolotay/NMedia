@@ -78,9 +78,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startEditing(content: String?) {
         if (content != null) {
-            edited.value = empty.copy(content = content)
+            edited.value = edited.value?.copy(content = content) ?: empty.copy(content = content)
         } else {
-            // Новый пост — проверяем есть ли сохранённый черновик
             edited.value = empty.copy(content = draftMain ?: "")
         }
     }
