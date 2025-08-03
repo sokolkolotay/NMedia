@@ -19,4 +19,9 @@
     <string name="chooser_video_playback_application">Select video playback application</string>
     <string name="add_Post">Add post</string>
     <string name="ic_video_placeholder">Thumbnail Video</string>
+    <string name="google_play_unavailable">Google Api Unavailable</string>
+    <string name="notification_user_liked">User %1$s liked %2$s\'s post</string>
+    <string name="channel_remote_name">Server notifications</string>
+    <string name="channel_remote_description">Notifications from remote server</string>
+    <string name="notification_new_post">User %1$s posted a new post:</string>
 </resources>

@@ -1,0 +1,73 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1️⃣ Запустить Android эмулятор",
+      "type": "shell",
+      "command": "/Users/kolotaj/Library/Android/sdk/emulator/emulator",
+      "args": ["-avd", "Medium_Phone_API_35"],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "❌ Выключить Android эмулятор",
+      "type": "shell",
+      "command": "adb",
+      "args": ["emu", "kill"],
+      "problemMatcher": []
+    },
+    {
+      "label": "2️⃣ Запустить приложение",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["installDebug"],
+      "problemMatcher": []
+    },
+    {
+      "label": "3️⃣ Перестановить приложение",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "🛠 Сборка APK",
+        "📱 Установить APK",
+        "🚀 Запустить приложение"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "🛠 Сборка APK",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["assembleDebug"],
+      "problemMatcher": []
+    },
+    {
+      "label": "📱 Установить APK",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "install",
+        "-r",
+        "app/build/outputs/apk/debug/app-debug.apk"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Запустить приложение",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "shell",
+        "monkey",
+        "-p",
+        "ru.netology.nmedia",
+        "-c",
+        "android.intent.category.LAUNCHER",
+        "1"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
