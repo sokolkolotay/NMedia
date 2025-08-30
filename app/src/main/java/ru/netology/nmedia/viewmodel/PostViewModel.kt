@@ -1,86 +1,98 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import ru.netology.nmedia.db.AppDb
+import androidx.lifecycle.*
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
+import ru.netology.nmedia.model.FeedModel
+import ru.netology.nmedia.repository.*
+import ru.netology.nmedia.util.SingleLiveEvent
+import java.io.IOException
+import kotlin.concurrent.thread
 
 private val empty = Post(
     id = 0,
-    author = "",
-    published = "",
     content = "",
+    author = "",
+    likedByMe = false,
     likes = 0,
-    comments = 0,
-    reposts = 0,
-    views = 0,
-    likeByMe = false
+    published = ""
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository: PostRepository = PostRepositoryImpl(
-        AppDb.getInstance(application).postDao()
-    )
-    val data = repository.get()
+    // упрощённый вариант
+    private val repository: PostRepository = PostRepositoryImpl()
+    private val _data = MutableLiveData(FeedModel())
+    val data: LiveData<FeedModel>
+        get() = _data
     val edited = MutableLiveData(empty)
+    private val _postCreated = SingleLiveEvent<Unit>()
+    val postCreated: LiveData<Unit>
+        get() = _postCreated
 
-    fun like(id: Long) = repository.like(id)
-    fun repost(id: Long) = repository.repost(id)
-    fun removeById(id: Long) = repository.removeById(id)
-    fun changeContent(content: String) {
-        val text = content.trim()
+    init {
+        loadPosts()
+    }
 
-        edited.value?.let {
-            if (text == it.content) {
-                return@let
-            }
-
-            edited.value = it.copy(content = text)
+    fun loadPosts() {
+        thread {
+            // Начинаем загрузку
+            _data.postValue(FeedModel(loading = true))
+            try {
+                // Данные успешно получены
+                val posts = repository.getAll()
+                FeedModel(posts = posts, empty = posts.isEmpty())
+            } catch (e: IOException) {
+                // Получена ошибка
+                FeedModel(error = true)
+            }.also(_data::postValue)
         }
     }
 
     fun save() {
-        edited.value?.let { post ->
-            viewModelScope.launch {
-                repository.save(post)
+        edited.value?.let {
+            thread {
+                repository.save(it)
+                _postCreated.postValue(Unit)
             }
         }
-        clearEdited()
+        edited.value = empty
     }
 
     fun edit(post: Post) {
         edited.value = post
     }
 
-    fun clearEdited() {
+    fun changeContent(content: String) {
+        val text = content.trim()
+        if (edited.value?.content == text) {
+            return
+        }
+        edited.value = edited.value?.copy(content = text)
+    }
+
+    fun likeById(id: Long) {
+        thread {
+            repository.likeById(id)
+            loadPosts()
+        }
         edited.value = empty
-        clearDraft()
     }
 
-    //работа с черновиком
-    private var draftMain: String? = null
-    val draft: String?
-        get() = draftMain
-
-    fun saveDraft(text: String) {
-        draftMain = text.trim()
-    }
-
-    fun clearDraft() {
-        draftMain = null
-    }
-
-    fun startEditing(content: String?) {
-        if (content != null) {
-            edited.value = edited.value?.copy(content = content) ?: empty.copy(content = content)
-        } else {
-            edited.value = empty.copy(content = draftMain ?: "")
+    fun removeById(id: Long) {
+        thread {
+            // Оптимистичная модель
+            val old = _data.value?.posts.orEmpty()
+            _data.postValue(
+                _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                    .filter { it.id != id }
+                )
+            )
+            try {
+                repository.removeById(id)
+            } catch (e: IOException) {
+                _data.postValue(_data.value?.copy(posts = old))
+            }
         }
     }
+
 }
