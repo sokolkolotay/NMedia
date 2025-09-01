@@ -71,9 +71,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun likeById(id: Long) {
+        val likedByMe = _data.value?.posts?.find { it.id == id }?.likedByMe ?: return
         thread {
-            repository.likeById(id)
-            loadPosts()
+            val newStatePost = repository.likeById(id, likedByMe)
+            _data.postValue(
+                _data.value?.copy(
+                    posts = _data.value?.posts.orEmpty().map {
+                        if (it.id == id) newStatePost
+                        else it
+                    }
+                )
+            )
         }
         edited.value = empty
     }
