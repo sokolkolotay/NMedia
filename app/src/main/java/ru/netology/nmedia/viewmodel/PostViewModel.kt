@@ -32,20 +32,34 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     init {
         loadPosts()
     }
+    //старая реализация через getAll
+//    fun loadPosts() {
+//        thread {
+//            // Начинаем загрузку
+//            _data.postValue(FeedModel(loading = true))
+//            try {
+//                // Данные успешно получены
+//                val posts = repository.getAll()
+//                FeedModel(posts = posts, empty = posts.isEmpty())
+//            } catch (e: IOException) {
+//                // Получена ошибка
+//                FeedModel(error = true)
+//            }.also(_data::postValue)
+//        }
+//    }
 
+    // реализация через getAllAsync
     fun loadPosts() {
-        thread {
-            // Начинаем загрузку
-            _data.postValue(FeedModel(loading = true))
-            try {
-                // Данные успешно получены
-                val posts = repository.getAll()
-                FeedModel(posts = posts, empty = posts.isEmpty())
-            } catch (e: IOException) {
-                // Получена ошибка
-                FeedModel(error = true)
-            }.also(_data::postValue)
-        }
+        _data.postValue(FeedModel(loading = true))
+        repository.getAllAsync(object : PostRepository.GetAllCallback {
+            override fun onSuccess(posts: List<Post>) {
+                _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
+            }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+        })
     }
 
     fun save() {
@@ -69,21 +83,42 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
         edited.value = edited.value?.copy(content = text)
     }
+    //старая реализация через likeById
+//    fun likeById(id: Long) {
+//        val likedByMe = _data.value?.posts?.find { it.id == id }?.likedByMe ?: return
+//        thread {
+//            val newStatePost = repository.likeById(id, likedByMe)
+//            _data.postValue(
+//                _data.value?.copy(
+//                    posts = _data.value?.posts.orEmpty().map {
+//                        if (it.id == id) newStatePost
+//                        else it
+//                    }
+//                )
+//            )
+//        }
+//        edited.value = empty
+//    }
 
+    //новая реализация через LikeByIdAsync
     fun likeById(id: Long) {
         val likedByMe = _data.value?.posts?.find { it.id == id }?.likedByMe ?: return
-        thread {
-            val newStatePost = repository.likeById(id, likedByMe)
-            _data.postValue(
-                _data.value?.copy(
-                    posts = _data.value?.posts.orEmpty().map {
-                        if (it.id == id) newStatePost
-                        else it
-                    }
+        repository.likeByIdAsync(id, likedByMe, object : PostRepository.LikeByIdAsync {
+            override fun onSuccess(post: Post) {
+                _data.postValue(
+                    _data.value?.copy(
+                        posts = _data.value?.posts.orEmpty().map {
+                            if (it.id == id) post else it
+                        }
+                    )
                 )
-            )
-        }
-        edited.value = empty
+            }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+
+        })
     }
 
     fun removeById(id: Long) {
@@ -91,8 +126,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             // Оптимистичная модель
             val old = _data.value?.posts.orEmpty()
             _data.postValue(
-                _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                    .filter { it.id != id }
+                _data.value?.copy(
+                    posts = _data.value?.posts.orEmpty()
+                        .filter { it.id != id }
                 )
             )
             try {
