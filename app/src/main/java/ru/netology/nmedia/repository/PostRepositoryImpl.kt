@@ -87,7 +87,7 @@ class PostRepositoryImpl : PostRepository {
     override fun likeByIdAsync(
         id: Long,
         likedByMe: Boolean,
-        callback: PostRepository.LikeByIdAsync
+        callback: PostRepository.LikeByIdCallback
     ) {
         val request = if (likedByMe) {
             Request.Builder()
@@ -119,25 +119,72 @@ class PostRepositoryImpl : PostRepository {
             })
     }
 
-    override fun save(post: Post) {
+    //
+//    override fun save(post: Post) {
+//        val request: Request = Request.Builder()
+//            .post(gson.toJson(post).toRequestBody(jsonType))
+//            .url("${BASE_URL}/api/slow/posts")
+//            .build()
+//
+//        client.newCall(request)
+//            .execute()
+//            .close()
+//    }
+
+    override fun saveAsync(post: Post, callback: PostRepository.SaveCallback) {
         val request: Request = Request.Builder()
             .post(gson.toJson(post).toRequestBody(jsonType))
             .url("${BASE_URL}/api/slow/posts")
             .build()
 
         client.newCall(request)
-            .execute()
-            .close()
+            .enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    try {
+                        val posts =
+                            response.body?.string() ?: throw RuntimeException("body is null")
+                        callback.onSuccess(gson.fromJson(posts, Post::class.java))
+                    } catch (e: Exception) {
+                        callback.onError(e)
+                    }
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onError(e)
+                }
+            })
     }
 
-    override fun removeById(id: Long) {
+//    override fun removeById(id: Long) {
+//        val request: Request = Request.Builder()
+//            .delete()
+//            .url("${BASE_URL}/api/slow/posts/$id")
+//            .build()
+//
+//        client.newCall(request)
+//            .execute()
+//            .close()
+//    }
+
+    override fun removeByIdAsync(id: Long, callback: PostRepository.RemoveByIdCallback) {
         val request: Request = Request.Builder()
             .delete()
             .url("${BASE_URL}/api/slow/posts/$id")
             .build()
 
         client.newCall(request)
-            .execute()
-            .close()
+            .enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        callback.onSuccess()
+                    } else {
+                        callback.onError(RuntimeException("Response code: ${response.code}"))
+                    }
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onError(e)
+                }
+            })
     }
 }
