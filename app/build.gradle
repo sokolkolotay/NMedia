@@ -29,6 +29,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 
     buildTypes {
@@ -36,10 +37,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders.usesCleartextTraffic = false
+            buildConfigField"String", "BASE_URL", "\"http://10.0.2.2:9999/\""
         }
         debug {
+            buildConfigField "String", "BASE_URL", "\"http://10.0.2.2:9999/\""
             manifestPlaceholders.usesCleartextTraffic = true
         }
+    }
+    ext {
+        okhttp_version = '4.10.0'
     }
 }
 
@@ -59,6 +65,10 @@ dependencies {
     def play_services_base_version = "18.7.2"
     def core_desugaring_version = "2.1.5"
     def swiperefreshlayout_version = "1.1.0"
+    def retrofit_version = "2.11.0"
+    def retrofitgson_version = "2.11.0"
+    def okhttplogging_version = "4.12.0"
+    def glide_version = "4.16.0"
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "androidx.core:core-ktx:$core_version"
@@ -81,4 +91,9 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:$play_services_base_version"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$core_desugaring_version"
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:$swiperefreshlayout_version"
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitgson_version"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttplogging_version"
+    implementation "com.github.bumptech.glide:glide:$glide_version"
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 }

@@ -1,13 +1,17 @@
 package ru.netology.nmedia.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 
 interface OnInteractionListener {
@@ -71,6 +75,28 @@ class PostViewHolder(
 
             share.setOnClickListener {
                 onInteractionListener.onShare(post)
+            }
+
+            //загрузка АВАТАР
+            Glide.with(avatar.context)
+                .load("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
+                .timeout(10_000)
+                .placeholder(R.drawable.ic_loading_100dp)
+                .error(R.drawable.ic_error_100dp)
+                .circleCrop()
+                .into(avatar)
+            //загрузка ИЗОБРАЖЕНИЯ ВЛОЖЕНИЯ
+            if (post.attachment != null && post.attachment.type == AttachmentType.IMAGE) {
+                attachment.visibility = View.VISIBLE
+                Glide.with(attachment.context)
+                    .load("${BuildConfig.BASE_URL}/images/${post.attachment.url}")
+                    .timeout(10_000)
+                    .placeholder(R.drawable.ic_loading_100dp)
+                    .error(R.drawable.ic_error_100dp)
+                    .into(attachment)
+            } else {
+                attachment.setImageDrawable(null)// сбрасываем изображение чтобы не было дублей
+                attachment.visibility = View.GONE
             }
         }
     }

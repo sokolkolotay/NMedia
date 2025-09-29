@@ -56,7 +56,7 @@ class FeedFragment : Fragment() {
 
         //свайп обновления
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
+            viewModel.load()
         }
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
@@ -69,7 +69,7 @@ class FeedFragment : Fragment() {
         }
 
         binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
+            viewModel.load()
         }
 
         binding.fab.setOnClickListener {
