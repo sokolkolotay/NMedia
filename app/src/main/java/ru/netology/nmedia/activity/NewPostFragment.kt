@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
@@ -43,6 +44,15 @@ class NewPostFragment : Fragment() {
             viewModel.load()
             findNavController().navigateUp()
         }
+
+        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                .setAction("Повторить") {
+                    viewModel.load()
+                }
+                .show()
+        }
+
         return binding.root
     }
 }

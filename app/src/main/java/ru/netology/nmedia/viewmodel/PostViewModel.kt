@@ -27,6 +27,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
 
+    private val _errorEvent = SingleLiveEvent<String>()
+    val errorEvent: LiveData<String> = _errorEvent
+
     init {
         load()
     }
@@ -64,7 +67,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(e: Throwable) {
-                _data.value
+                _errorEvent.postValue("Произошла ошибка при отметке лайк: ${e.message}")
             }
         })
     }
@@ -79,6 +82,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(e: Throwable) {
+                _errorEvent.postValue("Произошла ошибка при удалении поста: ${e.message}")
                 _data.postValue(currentState)
             }
         })
@@ -108,7 +112,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 override fun onError(e: Throwable) {
-                    _data.value
+                    _errorEvent.postValue("Произошла ошибка при сохранении поста: ${e.message}")
                 }
             })
         }
