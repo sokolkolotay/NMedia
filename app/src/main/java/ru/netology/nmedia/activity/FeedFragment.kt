@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -74,6 +75,15 @@ class FeedFragment : Fragment() {
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
+        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                .setAnchorView(binding.fab)
+                .setAction("Повторить") {
+                    viewModel.load()
+                }
+                .show()
         }
 
         return binding.root
