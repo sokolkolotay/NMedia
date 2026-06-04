@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
@@ -26,11 +25,7 @@ class NewPostFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val binding = FragmentNewPostBinding.inflate(
-            inflater,
-            container,
-            false
-        )
+        val binding = FragmentNewPostBinding.inflate(inflater, container, false)
 
         arguments?.textArg
             ?.let(binding.edit::setText)
@@ -40,17 +35,10 @@ class NewPostFragment : Fragment() {
             viewModel.save()
             AndroidUtils.hideKeyboard(requireView())
         }
-        viewModel.postCreated.observe(viewLifecycleOwner) {
-            viewModel.load()
-            findNavController().navigateUp()
-        }
 
-        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
-            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                .setAction("Повторить") {
-                    viewModel.load()
-                }
-                .show()
+        viewModel.postCreated.observe(viewLifecycleOwner) {
+            viewModel.loadPosts()
+            findNavController().navigateUp()
         }
 
         return binding.root

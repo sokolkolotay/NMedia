@@ -9,7 +9,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -47,7 +46,6 @@ class FeedFragment : Fragment() {
                     putExtra(Intent.EXTRA_TEXT, post.content)
                     type = "text/plain"
                 }
-
                 val shareIntent =
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
@@ -59,9 +57,8 @@ class FeedFragment : Fragment() {
         })
         binding.list.adapter = adapter
 
-        //свайп обновления
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.load()
+            viewModel.loadPosts()
         }
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
@@ -69,25 +66,15 @@ class FeedFragment : Fragment() {
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.emptyText.isVisible = state.empty
-            //управляем индикатором обновления
             binding.swipeRefresh.isRefreshing = state.loading
         }
 
         binding.retryButton.setOnClickListener {
-            viewModel.load()
+            viewModel.loadPosts()
         }
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
-        }
-
-        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
-            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                .setAnchorView(binding.fab)
-                .setAction("Повторить") {
-                    viewModel.load()
-                }
-                .show()
         }
 
         return binding.root
