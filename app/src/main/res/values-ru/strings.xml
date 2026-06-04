@@ -21,5 +21,5 @@
     <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
     <string name="channel_remote_name">Уведомления с сервера</string>
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
-    <string name="attachment">Вложение</string>
+    <string name="description_post_sync_status">Пост не синхронизирован</string>
 </resources>

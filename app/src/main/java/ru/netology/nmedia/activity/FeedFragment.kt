@@ -52,6 +52,10 @@ class FeedFragment : Fragment() {
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
             }
+
+            override fun onRetrySave(post: Post) {
+                viewModel.retrySave(post)
+            }
         })
         binding.list.adapter = adapter
 

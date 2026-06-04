@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    >
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -20,17 +22,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:srcCompat="@sample/posts.json/data/authorAvatar" />
-
-        <ImageView
-            android:id="@+id/attachment"
-            android:layout_width="0dp"
-            android:layout_height="200dp"
-            android:contentDescription="@string/attachment"
-            android:scaleType="centerCrop"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/content" />
 
         <TextView
             android:id="@+id/author"
@@ -62,14 +53,15 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/menu"
-            style="@style/Widget.AppTheme.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/common_spacing"
             android:contentDescription="@string/description_post_menu"
             app:icon="@drawable/ic_more_vert_24"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            style="@style/Widget.AppTheme.IconButton"
+            />
 
         <androidx.constraintlayout.widget.Barrier
             android:id="@+id/header"
@@ -96,30 +88,54 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:barrierDirection="bottom"
-            app:constraint_referenced_ids="content, attachment" />
+            app:constraint_referenced_ids="content" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/like"
-            style="@style/Widget.AppTheme.LikeCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checkable="true"
             android:contentDescription="@string/description_post_like"
-            app:icon="@drawable/ic_like_24dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/footer"
+            app:icon="@drawable/ic_like_24dp"
             tools:checked="@sample/posts.json/data/likedByMe"
-            tools:text="@sample/posts.json/data/likes" />
+            tools:text="@sample/posts.json/data/likes"
+            style="@style/Widget.AppTheme.LikeCheckBox"
+            />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/share"
-            style="@style/Widget.AppTheme.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/common_spacing"
             android:contentDescription="@string/description_post_share"
-            app:icon="@drawable/ic_share_24"
             app:layout_constraintStart_toEndOf="@+id/like"
-            app:layout_constraintTop_toBottomOf="@id/footer" />
+            app:layout_constraintTop_toBottomOf="@id/footer"
+            app:icon="@drawable/ic_share_24"
+            style="@style/Widget.AppTheme.IconButton"
+            />
+
+        <ImageView
+            android:id="@+id/syncStatus"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/description_post_sync_status"
+            android:src="@drawable/ic_sync_problem_24"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/share"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/share" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/retrySave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/retry_loading"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/share"
+            app:layout_constraintEnd_toStartOf="@id/syncStatus"
+            app:layout_constraintTop_toTopOf="@id/share"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

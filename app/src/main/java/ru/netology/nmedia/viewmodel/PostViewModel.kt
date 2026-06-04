@@ -1,121 +1,138 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.*
+import kotlinx.coroutines.launch
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
-import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
+import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
 
 private val empty = Post(
-    id = 0L,
-    author = "",
-    authorAvatar = "",
+    id = 0,
     content = "",
-    published = "",
+    author = "",
+    likedByMe = false,
     likes = 0,
-    likedByMe = false
+    published = ""
 )
+
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository = PostRepositoryImpl()
+    private val repository: PostRepository = PostRepositoryImpl(
+        AppDb.getInstance(application).postDao()
+    )
     private val _data = MutableLiveData(FeedModel())
-    val data: LiveData<FeedModel> = _data
-
+    val data: LiveData<FeedModel> get() = _data
+    val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
-    val postCreated: LiveData<Unit> = _postCreated
-
-    private val _errorEvent = SingleLiveEvent<String>()
-    val errorEvent: LiveData<String> = _errorEvent
+    val postCreated: LiveData<Unit> get() = _postCreated
 
     init {
-        load()
+        loadPosts()
     }
 
-    fun load() {
+    fun loadPosts() {
         _data.postValue(FeedModel(loading = true))
-
-        repository.getAllAsync(
-            object : PostRepository.PostCallback<List<Post>> {
-                override fun onSuccess(result: List<Post>) {
-                    _data.value = (FeedModel(posts = result, empty = result.isEmpty()))
-                }
-
-                override fun onError(e: Throwable) {
-                    _data.value = (FeedModel(error = true))
-                }
-            })
-    }
-
-    val edited = MutableLiveData(empty)
-
-    fun likeById(id: Long) {
-        val currentState = _data.value ?: return
-        val posts = currentState.posts
-        val post = posts.find { it.id == id } ?: return
-        val likedByMe = post.likedByMe
-
-        repository.likeById(id, likedByMe, object : PostRepository.PostCallback<Post> {
-            override fun onSuccess(result: Post) {
-                val refreshState = _data.value ?: return
-                val updatedPosts = refreshState.posts.map {
-                    if (it.id == result.id) result else it
-                }
-                _data.postValue(refreshState.copy(posts = updatedPosts))
+        repository.getAllAsync(object : PostRepository.GetAllCallback {
+            override fun onSuccess(posts: List<Post>) {
+                _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
             }
 
-            override fun onError(e: Throwable) {
-                _errorEvent.postValue("Произошла ошибка при отметке лайк: ${e.message}")
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
             }
         })
+    }
+
+    fun likeById(id: Long) {
+        val likedByMe = _data.value?.posts?.find { it.id == id }?.likedByMe ?: return
+        // Оптимистичное обновление: меняем локально сразу
+        _data.value = _data.value?.copy(
+            posts = _data.value?.posts.orEmpty().map { post ->
+                if (post.id == id) post.copy(
+                    likedByMe = !likedByMe,
+                    likes = if (likedByMe) post.likes - 1 else post.likes + 1
+                ) else post
+            }
+        )
+        viewModelScope.launch {
+            try {
+                val updated = repository.likeById(id, likedByMe)
+                // Обновляем актуальным ответом сервера
+                _data.postValue(
+                    _data.value?.copy(
+                        posts = _data.value?.posts.orEmpty().map {
+                            if (it.id == id) updated else it
+                        }
+                    )
+                )
+            } catch (e: Exception) {
+                // Откатываем оптимистичное изменение
+                _data.postValue(
+                    _data.value?.copy(
+                        posts = _data.value?.posts.orEmpty().map { post ->
+                            if (post.id == id) post.copy(
+                                likedByMe = likedByMe,
+                                likes = if (likedByMe) post.likes + 1 else post.likes - 1
+                            ) else post
+                        },
+                        error = true
+                    )
+                )
+            }
+        }
     }
 
     fun removeById(id: Long) {
-        val currentState = _data.value ?: return
-        _data.postValue(currentState.copy(posts = currentState.posts.filter { it.id != id }))
-
-        repository.removeById(id, object : PostRepository.PostCallback<Unit> {
-            override fun onSuccess(result: Unit) {
-
+        // Оптимистичное удаление
+        val old = _data.value?.posts.orEmpty()
+        _data.value = _data.value?.copy(
+            posts = old.filter { it.id != id }
+        )
+        viewModelScope.launch {
+            try {
+                repository.removeById(id)
+            } catch (e: Exception) {
+                // Откатываем
+                _data.postValue(_data.value?.copy(posts = old, error = true))
             }
-
-            override fun onError(e: Throwable) {
-                _errorEvent.postValue("Произошла ошибка при удалении поста: ${e.message}")
-                _data.postValue(currentState)
-            }
-        })
+        }
     }
 
+    fun save() {
+        edited.value?.let { post ->
+            viewModelScope.launch {
+                try {
+                    repository.save(post)
+                    _postCreated.postValue(Unit)
+                } catch (e: Exception) {
+                    _data.postValue(_data.value?.copy(error = true))
+                }
+            }
+        }
+        edited.value = empty
+    }
 
+    fun retrySave(post: Post) {
+        viewModelScope.launch {
+            try {
+                repository.save(post)
+                // После успеха перезагружаем список, чтобы убрать isSynced = false
+                loadPosts()
+            } catch (e: Exception) {
+                _data.postValue(_data.value?.copy(error = true))
+            }
+        }
+    }
 
-    fun edit(post: Post){
+    fun edit(post: Post) {
         edited.value = post
     }
-    fun clear() {
-        edited.value = empty
-    }
+
     fun changeContent(content: String) {
         val text = content.trim()
-        if (edited.value?.content == text) {
-            return
-        }
+        if (edited.value?.content == text) return
         edited.value = edited.value?.copy(content = text)
-    }
-    fun save() {
-        edited.value?.let {
-            repository.save(it, object : PostRepository.PostCallback<Post> {
-                override fun onSuccess(result: Post) {
-
-                    _postCreated.postValue(Unit)
-                }
-
-                override fun onError(e: Throwable) {
-                    _errorEvent.postValue("Произошла ошибка при сохранении поста: ${e.message}")
-                }
-            })
-        }
-        edited.value = empty
     }
 }
