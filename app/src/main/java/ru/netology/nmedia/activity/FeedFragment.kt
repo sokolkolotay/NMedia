@@ -69,6 +69,23 @@ class FeedFragment : Fragment() {
             binding.swipeRefresh.isRefreshing = state.loading
         }
 
+        // Плашка новых постов
+        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
+            binding.newPostsBanner.isVisible = count > 0
+            binding.newPostsBanner.text = resources.getQuantityString(
+                R.plurals.new_posts,
+                count,
+                count
+            )
+        }
+
+        // Нажатие на плашку: показать посты и скролл наверх
+        binding.newPostsBanner.setOnClickListener {
+            viewModel.showNewPosts()
+            binding.newPostsBanner.isVisible = false
+            binding.list.smoothScrollToPosition(0)
+        }
+
         binding.retryButton.setOnClickListener {
             viewModel.loadPosts()
         }

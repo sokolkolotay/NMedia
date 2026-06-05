@@ -13,12 +13,22 @@ data class PostEntity(
     val published: String,
     val likedByMe: Boolean,
     val likes: Int = 0,
-    val isSynced: Boolean = true, // false = ещё не сохранён на сервере
+    val isSynced: Boolean = true,   // false = ещё не сохранён на сервере
+    val hidden: Boolean = false,    // true = новый пост, ещё не показан пользователю
 ) {
     fun toDto() = Post(id, author, content, published, likedByMe, likes, isSynced)
 
     companion object {
-        fun fromDto(dto: Post) =
-            PostEntity(dto.id, dto.author, dto.content, dto.published, dto.likedByMe, dto.likes, dto.isSynced)
+        fun fromDto(dto: Post, hidden: Boolean = false) =
+            PostEntity(
+                dto.id,
+                dto.author,
+                dto.content,
+                dto.published,
+                dto.likedByMe,
+                dto.likes,
+                dto.isSynced,
+                hidden,
+            )
     }
 }

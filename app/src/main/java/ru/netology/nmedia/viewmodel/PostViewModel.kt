@@ -2,6 +2,7 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
@@ -28,8 +29,33 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> get() = _postCreated
 
+    // Количество новых скрытых постов — для плашки
+    val newerCount: LiveData<Int> = AppDb.getInstance(application).postDao().getNewerCount()
+
     init {
         loadPosts()
+        startPollingNewer()
+    }
+
+    // Фоновый polling каждые 10 секунд
+    private fun startPollingNewer() {
+        viewModelScope.launch {
+            delay(10_000L) // ждём первой загрузки
+            while (true) {
+                val maxId = AppDb.getInstance(getApplication()).postDao().getMaxId() ?: 0L
+                if (maxId > 0L) {
+                    repository.getNewer(maxId)
+                }
+                delay(10_000L)
+            }
+        }
+    }
+
+    // Вызывается при нажатии на плашку — показать скрытые посты
+    fun showNewPosts() {
+        viewModelScope.launch {
+            repository.showNewPosts()
+        }
     }
 
     fun loadPosts() {
@@ -47,7 +73,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun likeById(id: Long) {
         val likedByMe = _data.value?.posts?.find { it.id == id }?.likedByMe ?: return
-        // Оптимистичное обновление: меняем локально сразу
         _data.value = _data.value?.copy(
             posts = _data.value?.posts.orEmpty().map { post ->
                 if (post.id == id) post.copy(
@@ -59,7 +84,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val updated = repository.likeById(id, likedByMe)
-                // Обновляем актуальным ответом сервера
                 _data.postValue(
                     _data.value?.copy(
                         posts = _data.value?.posts.orEmpty().map {
@@ -68,7 +92,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 )
             } catch (e: Exception) {
-                // Откатываем оптимистичное изменение
                 _data.postValue(
                     _data.value?.copy(
                         posts = _data.value?.posts.orEmpty().map { post ->
@@ -85,16 +108,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun removeById(id: Long) {
-        // Оптимистичное удаление
         val old = _data.value?.posts.orEmpty()
-        _data.value = _data.value?.copy(
-            posts = old.filter { it.id != id }
-        )
+        _data.value = _data.value?.copy(posts = old.filter { it.id != id })
         viewModelScope.launch {
             try {
                 repository.removeById(id)
             } catch (e: Exception) {
-                // Откатываем
                 _data.postValue(_data.value?.copy(posts = old, error = true))
             }
         }
@@ -118,7 +137,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 repository.save(post)
-                // После успеха перезагружаем список, чтобы убрать isSynced = false
                 loadPosts()
             } catch (e: Exception) {
                 _data.postValue(_data.value?.copy(error = true))

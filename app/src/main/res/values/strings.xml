@@ -21,4 +21,11 @@
     <string name="channel_remote_name">Server notifications</string>
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="description_post_sync_status">The post is out of sync</string>
+    <string name="new_posts_banner">New entries</string>
+    <plurals name="new_posts">
+        <item quantity="one">%d new post</item>
+        <item quantity="few">%d new posts</item>
+        <item quantity="many">%d new posts</item>
+        <item quantity="other">%d new posts</item>
+    </plurals>
 </resources>

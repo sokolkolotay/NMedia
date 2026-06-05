@@ -10,6 +10,8 @@ import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     private val client = OkHttpClient.Builder()
@@ -33,7 +35,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 try {
                     val body = response.body?.string() ?: throw RuntimeException("body is null")
                     val posts: List<Post> = gson.fromJson(body, typeToken.type)
-                    // Сохраняем в локальную БД
                     dao.insert(posts.map { PostEntity.fromDto(it) })
                     callback.onSuccess(posts)
                 } catch (e: Exception) {
@@ -47,11 +48,33 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         })
     }
 
+    override suspend fun getNewer(id: Long): Int {
+        val request = Request.Builder()
+            .url("$BASE_URL/api/posts/$id/newer")
+            .build()
+
+        return try {
+            val posts = withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext emptyList()
+                    val body = response.body?.string() ?: return@withContext emptyList()
+                    gson.fromJson<List<Post>>(body, typeToken.type)
+                }
+            }
+            dao.insertHidden(posts.map { PostEntity.fromDto(it, hidden = true) })
+            posts.size
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    override suspend fun showNewPosts() {
+        dao.showAll()
+    }
+
     override suspend fun save(post: Post) {
-        // Шаг 1: сохраняем локально с isSynced = false — пост сразу виден в списке
         val localId = dao.insert(PostEntity.fromDto(post).copy(isSynced = false))
 
-        // Шаг 2: отправляем на сервер
         try {
             val request = Request.Builder()
                 .post(gson.toJson(post.copy(id = 0)).toRequestBody(jsonType))
@@ -63,20 +86,15 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 gson.fromJson(body, Post::class.java)
             }
 
-            // Шаг 3: заменяем локальный id на серверный и помечаем как синхронизированный
             dao.updateIdAndSynced(localId, serverPost.id)
         } catch (e: IOException) {
-            // Пост остаётся в БД с isSynced = false — пользователь видит иконку статуса
-            // и может нажать Retry
             throw e
         }
     }
 
     override suspend fun likeById(id: Long, likedByMe: Boolean): Post {
-        // Шаг 1: обновляем локально
         dao.likeById(id)
 
-        // Шаг 2: отправляем в сеть
         val request = if (likedByMe) {
             Request.Builder().delete().url("$BASE_URL/api/posts/$id/likes").build()
         } else {
@@ -89,17 +107,14 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 gson.fromJson(body, Post::class.java)
             }
         } catch (e: IOException) {
-            // Откатываем локальное изменение
             dao.likeById(id)
             throw e
         }
     }
 
     override suspend fun removeById(id: Long) {
-        // Шаг 1: удаляем локально
         dao.removeById(id)
 
-        // Шаг 2: удаляем на сервере
         val request = Request.Builder()
             .delete()
             .url("$BASE_URL/api/slow/posts/$id")

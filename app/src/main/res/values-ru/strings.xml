@@ -22,4 +22,11 @@
     <string name="channel_remote_name">Уведомления с сервера</string>
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="description_post_sync_status">Пост не синхронизирован</string>
+    <string name="new_posts_banner">Новые записи</string>
+    <plurals name="new_posts">
+        <item quantity="one">%d новый пост</item>
+        <item quantity="few">%d новых поста</item>
+        <item quantity="many">%d новых постов</item>
+        <item quantity="other">%d новых постов</item>
+    </plurals>
 </resources>

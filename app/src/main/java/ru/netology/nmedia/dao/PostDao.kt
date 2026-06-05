@@ -9,11 +9,12 @@ import ru.netology.nmedia.entity.PostEntity
 
 @Dao
 interface PostDao {
-    @Query("SELECT * FROM PostEntity ORDER BY id DESC")
+    // Показываем только не скрытые посты
+    @Query("SELECT * FROM PostEntity WHERE hidden = 0 ORDER BY id DESC")
     fun getAll(): LiveData<List<PostEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(post: PostEntity): Long  // возвращает присвоенный id
+    fun insert(post: PostEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(posts: List<PostEntity>)
@@ -27,7 +28,6 @@ interface PostDao {
     @Query("UPDATE PostEntity SET isSynced = :isSynced WHERE id = :id")
     fun updateSyncedById(id: Long, isSynced: Boolean)
 
-    // Обновить id локальной записи на серверный после успешного сохранения
     @Query("UPDATE PostEntity SET id = :newId, isSynced = 1 WHERE id = :localId")
     fun updateIdAndSynced(localId: Long, newId: Long)
 
@@ -41,4 +41,20 @@ interface PostDao {
 
     @Query("DELETE FROM PostEntity WHERE id = :id")
     fun removeById(id: Long)
+
+    // Вставить новые посты как скрытые (hidden = true)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertHidden(posts: List<PostEntity>)
+
+    // Сколько скрытых постов ждут показа
+    @Query("SELECT COUNT(*) FROM PostEntity WHERE hidden = 1")
+    fun getNewerCount(): LiveData<Int>
+
+    // Показать все скрытые посты
+    @Query("UPDATE PostEntity SET hidden = 0 WHERE hidden = 1")
+    fun showAll()
+
+    // Максимальный id в БД — чтобы не запрашивать уже имеющиеся посты
+    @Query("SELECT MAX(id) FROM PostEntity")
+    fun getMaxId(): Long?
 }

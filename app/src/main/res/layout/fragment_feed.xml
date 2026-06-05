@@ -69,6 +69,19 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:listitem="@layout/card_post" />
 
+        <!-- Плашка новых постов — поверх списка, по центру сверху -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/newPostsBanner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/new_posts_banner"
+            android:visibility="gone"
+            app:icon="@drawable/ic_arrow_up_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content"
@@ -82,4 +95,3 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
