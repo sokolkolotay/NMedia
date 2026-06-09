@@ -61,11 +61,16 @@ class FeedFragment : Fragment() {
             viewModel.loadPosts()
         }
 
+        // Список постов из Flow — обновляется автоматически при любом изменении БД
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
+            binding.emptyText.isVisible = state.empty
+        }
+
+        // Состояние загрузки и ошибок — отдельно от данных
+        viewModel.dataState.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible = state.empty
             binding.swipeRefresh.isRefreshing = state.loading
         }
 
@@ -79,7 +84,6 @@ class FeedFragment : Fragment() {
             )
         }
 
-        // Нажатие на плашку: показать посты и скролл наверх
         binding.newPostsBanner.setOnClickListener {
             viewModel.showNewPosts()
             binding.newPostsBanner.isVisible = false
