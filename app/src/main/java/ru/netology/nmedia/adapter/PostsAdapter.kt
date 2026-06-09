@@ -7,8 +7,10 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 
 interface OnInteractionListener {
@@ -17,6 +19,7 @@ interface OnInteractionListener {
     fun onRemove(post: Post) {}
     fun onShare(post: Post) {}
     fun onRetrySave(post: Post) {}
+    fun onImage(url: String) {}
 }
 
 class PostsAdapter(
@@ -45,12 +48,25 @@ class PostViewHolder(
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
 
-            // Иконка и кнопка retry видны только у несинхронизированных постов
             syncStatus.isVisible = !post.isSynced
             retrySave.isVisible = !post.isSynced
-
-            // Лайк недоступен для несохранённых постов
             like.isEnabled = post.isSynced
+
+            // Вложение
+            if (post.attachment != null && post.attachment.type == AttachmentType.IMAGE) {
+                attachment.isVisible = true
+                Glide.with(attachment)
+                    .load("http://10.0.2.2:9999/media/${post.attachment.url}")
+                    .override(600, 300)
+                    .centerCrop()
+                    .into(attachment)
+                attachment.setOnClickListener {
+                    onInteractionListener.onImage("http://10.0.2.2:9999/media/${post.attachment.url}")
+                }
+            } else {
+                attachment.isVisible = false
+                attachment.setOnClickListener(null)
+            }
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {

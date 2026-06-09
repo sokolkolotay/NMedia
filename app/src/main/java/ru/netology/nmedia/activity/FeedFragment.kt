@@ -54,6 +54,13 @@ class FeedFragment : Fragment() {
             override fun onRetrySave(post: Post) {
                 viewModel.retrySave(post)
             }
+
+            override fun onImage(url: String) {
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_imageFragment,
+                    Bundle().apply { putString("url", url) }
+                )
+            }
         })
         binding.list.adapter = adapter
 
@@ -66,6 +73,19 @@ class FeedFragment : Fragment() {
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.emptyText.isVisible = state.empty
+            binding.swipeRefresh.isRefreshing = state.loading
+        }
+
+        // Список постов
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            adapter.submitList(state.posts)
+            binding.emptyText.isVisible = state.empty
+        }
+
+        // Состояние загрузки и ошибок
+        viewModel.dataState.observe(viewLifecycleOwner) { state ->
+            binding.progress.isVisible = state.loading
+            binding.errorGroup.isVisible = state.error
             binding.swipeRefresh.isRefreshing = state.loading
         }
 

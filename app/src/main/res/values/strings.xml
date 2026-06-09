@@ -28,4 +28,5 @@
         <item quantity="many">%d new posts</item>
         <item quantity="other">%d new posts</item>
     </plurals>
+    <string name="description_post_attachment">Image for the post</string>
 </resources>
