@@ -5,6 +5,7 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
@@ -79,7 +80,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Добавить в класс:
+    private val _authError = SingleLiveEvent<Unit>()
+    val authError: LiveData<Unit> get() = _authError
+
     fun likeById(id: Long) {
+        if (!AppAuth.getInstance().state.value.isAuthorized) {
+            _authError.value = Unit
+            return
+        }
         val likedByMe = data.value?.posts?.find { it.id == id }?.likedByMe ?: return
         viewModelScope.launch {
             try {
