@@ -10,6 +10,7 @@ import retrofit2.http.*
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.dto.Token
 import java.util.concurrent.TimeUnit
 
@@ -18,7 +19,6 @@ private const val BASE_URL = "${BuildConfig.BASE_URL}api/slow/"
 private val client = OkHttpClient.Builder()
     .connectTimeout(30, TimeUnit.SECONDS)
     .addInterceptor { chain ->
-        // Добавляем токен в каждый запрос если он есть
         val token = AppAuth.getInstance().state.value.token
         val request = if (token != null) {
             chain.request().newBuilder()
@@ -77,6 +77,9 @@ interface PostApiService {
         @Field("pass") pass: String,
         @Field("name") name: String,
     ): Response<Token>
+
+    @POST("${BuildConfig.BASE_URL}api/push-tokens")
+    suspend fun sendPushToken(@Body pushToken: PushToken): Response<Unit>
 }
 
 object PostsApi {

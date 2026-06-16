@@ -13,12 +13,12 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import kotlin.random.Random
 
 
 class FCMService : FirebaseMessagingService() {
-    private val action = "action"
-    private val content = "content"
+    private val contentKey = "content"
     private val channelId = "remote"
     private val gson = Gson()
 
@@ -37,28 +37,41 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
+        val raw = message.data[contentKey] ?: return
 
-        message.data[action]?.let {
-           when (Action.valueOf(it)) {
-              Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
-           }
+        val pushMessage = try {
+            gson.fromJson(raw, PushMessage::class.java)
+        } catch (e: Exception) {
+            return
+        }
+
+        val myId = AppAuth.getInstance().state.value.id
+
+        when {
+            // Массовая рассылка — recipientId отсутствует (null)
+            pushMessage.recipientId == null -> showSimpleNotification(pushMessage.content)
+
+            // recipientId совпадает с текущим пользователем — всё ок
+            pushMessage.recipientId == myId -> showSimpleNotification(pushMessage.content)
+
+            // recipientId = 0 — анонимная аутентификация на сервере, не совпадает с нашим —
+            // переотправляем свой push token
+            pushMessage.recipientId == 0L -> AppAuth.getInstance().sendPushToken()
+
+            // recipientId != 0 и не равен нашему — на сервере другая аутентификация для этого токена,
+            // переотправляем свой push token
+            else -> AppAuth.getInstance().sendPushToken()
         }
     }
 
     override fun onNewToken(token: String) {
-        println(token)
+        AppAuth.getInstance().sendPushToken(token)
     }
 
-    private fun handleLike(content: Like) {
+    private fun showSimpleNotification(text: String) {
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(
-                getString(
-                    R.string.notification_user_liked,
-                    content.userName,
-                    content.postAuthor,
-                )
-            )
+            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
@@ -78,14 +91,7 @@ class FCMService : FirebaseMessagingService() {
     }
 }
 
-enum class Action {
-    LIKE,
-}
-
-data class Like(
-    val userId: Long,
-    val userName: String,
-    val postId: Long,
-    val postAuthor: String,
+data class PushMessage(
+    val recipientId: Long?,
+    val content: String,
 )
-
