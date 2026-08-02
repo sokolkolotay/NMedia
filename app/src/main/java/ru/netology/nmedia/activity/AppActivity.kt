@@ -22,8 +22,19 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import dagger.hilt.android.AndroidEntryPoint
+import jakarta.inject.Inject
 
+@AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
+    @Inject
+    lateinit var appAuth: AppAuth
+
+    @Inject
+    lateinit var firebaseMessaging: FirebaseMessaging
+
+    @Inject
+    lateinit var googleApiAvailability: GoogleApiAvailability
 
     private lateinit var binding: ActivityAppBinding
 
@@ -57,7 +68,7 @@ class AppActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            AppAuth.getInstance().state.collectLatest {
+            appAuth.state.collectLatest {
                 invalidateOptionsMenu()
             }
         }
@@ -67,7 +78,7 @@ class AppActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
-        val authorized = AppAuth.getInstance().state.value.isAuthorized
+        val authorized = appAuth.state.value.isAuthorized
         menu.findItem(R.id.signin).isVisible = !authorized
         menu.findItem(R.id.signup).isVisible = !authorized
         menu.findItem(R.id.signout).isVisible = authorized
@@ -75,7 +86,7 @@ class AppActivity : AppCompatActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        val authorized = AppAuth.getInstance().state.value.isAuthorized
+        val authorized = appAuth.state.value.isAuthorized
         menu.findItem(R.id.signin).isVisible = !authorized
         menu.findItem(R.id.signup).isVisible = !authorized
         menu.findItem(R.id.signout).isVisible = authorized
@@ -95,7 +106,7 @@ class AppActivity : AppCompatActivity() {
                 true
             }
             R.id.signout -> {
-                AppAuth.getInstance().clearAuth()
+                appAuth.clearAuth()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -110,7 +121,7 @@ class AppActivity : AppCompatActivity() {
     }
 
     private fun checkGoogleApiAvailability() {
-        with(GoogleApiAvailability.getInstance()) {
+        with(googleApiAvailability) {
             val code = isGooglePlayServicesAvailable(this@AppActivity)
             if (code == ConnectionResult.SUCCESS) return@with
             if (isUserResolvableError(code)) {
@@ -119,6 +130,6 @@ class AppActivity : AppCompatActivity() {
             }
             Toast.makeText(this@AppActivity, R.string.google_play_unavailable, Toast.LENGTH_LONG).show()
         }
-        FirebaseMessaging.getInstance().token.addOnSuccessListener { println(it) }
+        firebaseMessaging.token
     }
 }
