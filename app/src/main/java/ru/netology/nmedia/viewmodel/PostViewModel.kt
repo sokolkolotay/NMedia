@@ -12,6 +12,7 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.util.SingleLiveEvent
 import javax.inject.Inject
+import kotlinx.coroutines.flow.collectLatest
 
 private val empty = Post(
     id = 0,
@@ -76,6 +77,12 @@ class PostViewModel @Inject constructor(
     init {
         loadPosts()
         startPollingNewer()
+
+        viewModelScope.launch {
+            appAuth.state.collectLatest {
+                loadPosts()
+            }
+        }
     }
 
 
