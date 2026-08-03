@@ -47,6 +47,7 @@ class PostViewHolder(
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
+            menu.isVisible = post.ownedByMe
 
             syncStatus.isVisible = !post.isSynced
             retrySave.isVisible = !post.isSynced

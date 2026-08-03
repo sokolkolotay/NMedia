@@ -14,6 +14,7 @@ data class PostEntity(
     val content: String,
     val published: String,
     val likedByMe: Boolean,
+    val ownedByMe: Boolean = false,
     val likes: Int = 0,
     val isSynced: Boolean = true,
     val hidden: Boolean = false,
@@ -21,7 +22,7 @@ data class PostEntity(
     val attachmentType: AttachmentType? = null,
 ) {
     fun toDto() = Post(
-        id, author, content, published, likedByMe, likes, isSynced,
+        id, author, content, published, likedByMe, ownedByMe, likes, isSynced,
         attachment = if (attachmentUrl != null && attachmentType != null)
             Attachment(attachmentUrl, attachmentType)
         else null
@@ -35,6 +36,7 @@ data class PostEntity(
                 dto.content,
                 dto.published,
                 dto.likedByMe,
+                dto.ownedByMe,
                 dto.likes,
                 dto.isSynced,
                 hidden,

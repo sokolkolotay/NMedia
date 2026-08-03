@@ -58,7 +58,7 @@ class PostRepositoryImpl @Inject constructor(
 
         dao.insert(
             posts.map {
-                PostEntity.fromDto(it)
+                PostEntity.fromDto(it.copy(isSynced = true))
             }
         )
     }

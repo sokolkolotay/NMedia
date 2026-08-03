@@ -15,6 +15,7 @@ data class Post(
     val content: String,
     val published: String,
     val likedByMe: Boolean,
+    val ownedByMe: Boolean = false,
     val likes: Int = 0,
     val isSynced: Boolean = true,
     val attachment: Attachment? = null,
