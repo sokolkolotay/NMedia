@@ -9,7 +9,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -24,91 +30,64 @@ class FeedFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
         val adapter = PostsAdapter(object : OnInteractionListener {
-            override fun onEdit(post: Post) {
-                viewModel.edit(post)
-            }
+            override fun onEdit(post: Post) = viewModel.edit(post)
 
-            override fun onLike(post: Post) {
-                viewModel.likeById(post.id)
-            }
+            override fun onLike(post: Post) = viewModel.like(post)
 
-            override fun onRemove(post: Post) {
-                viewModel.removeById(post.id)
-            }
+            override fun onRemove(post: Post) = viewModel.removeById(post.id)
 
             override fun onShare(post: Post) {
-                val intent = Intent().apply {
-                    action = Intent.ACTION_SEND
+                val intent = Intent(Intent.ACTION_SEND).apply {
                     putExtra(Intent.EXTRA_TEXT, post.content)
                     type = "text/plain"
                 }
-                val shareIntent =
+                startActivity(
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
-                startActivity(shareIntent)
+                )
             }
 
-            override fun onRetrySave(post: Post) {
-                viewModel.retrySave(post)
-            }
+            override fun onRetrySave(post: Post) = viewModel.retrySave(post)
 
             override fun onImage(url: String) {
                 findNavController().navigate(
                     R.id.action_feedFragment_to_imageFragment,
-                    Bundle().apply { putString("url", url) }
+                    Bundle().apply { putString("url", url) },
                 )
             }
         })
+
         binding.list.adapter = adapter
+        binding.newPostsBanner.isVisible = false
 
-        binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.data.collectLatest(adapter::submitData)
+                }
+                launch {
+                    adapter.loadStateFlow.collectLatest { state ->
+                        val refresh = state.refresh
+                        binding.progress.isVisible = refresh is LoadState.Loading
+                        binding.swipeRefresh.isRefreshing = refresh is LoadState.Loading
+                        binding.errorGroup.isVisible = refresh is LoadState.Error
+                        binding.emptyText.isVisible =
+                            refresh is LoadState.NotLoading && adapter.itemCount == 0
+                    }
+                }
+            }
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.progress.isVisible = state.loading
-            binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible = state.empty
-            binding.swipeRefresh.isRefreshing = state.loading
-        }
+        binding.swipeRefresh.setOnRefreshListener(adapter::refresh)
+        binding.retryButton.setOnClickListener { adapter.retry() }
 
-        // Список постов
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.emptyText.isVisible = state.empty
-        }
-
-        // Состояние загрузки и ошибок
-        viewModel.dataState.observe(viewLifecycleOwner) { state ->
-            binding.progress.isVisible = state.loading
-            binding.errorGroup.isVisible = state.error
-            binding.swipeRefresh.isRefreshing = state.loading
-        }
-
-        // Плашка новых постов
-        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
-            binding.newPostsBanner.isVisible = count > 0
-            binding.newPostsBanner.text = resources.getQuantityString(
-                R.plurals.new_posts,
-                count,
-                count
-            )
-        }
-
-        // Нажатие на плашку: показать посты и скролл наверх
-        binding.newPostsBanner.setOnClickListener {
-            viewModel.showNewPosts()
-            binding.newPostsBanner.isVisible = false
-            binding.list.smoothScrollToPosition(0)
-        }
-
-        binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
+        // Повторный запрос первой страницы после login/logout.
+        viewModel.authState.observe(viewLifecycleOwner) {
+            adapter.refresh()
         }
 
         binding.fab.setOnClickListener {
@@ -125,6 +104,7 @@ class FeedFragment : Fragment() {
                 .setNegativeButton("Отмена", null)
                 .show()
         }
+
         return binding.root
     }
 }
