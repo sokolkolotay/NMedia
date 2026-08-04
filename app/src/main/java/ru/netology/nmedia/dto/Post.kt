@@ -11,10 +11,12 @@ enum class AttachmentType {
 
 data class Post(
     val id: Long,
+    val authorId: Long = 0,
     val author: String,
     val content: String,
-    val published: String,
+    val published: Long,
     val likedByMe: Boolean,
+    val ownedByMe: Boolean = false,
     val likes: Int = 0,
     val isSynced: Boolean = true,
     val attachment: Attachment? = null,

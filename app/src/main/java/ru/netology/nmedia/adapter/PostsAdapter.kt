@@ -25,13 +25,23 @@ interface OnInteractionListener {
 class PostsAdapter(
     private val onInteractionListener: OnInteractionListener,
 ) : PagingDataAdapter<Post, PostViewHolder>(PostDiffCallback()) {
+    private var currentUserId: Long = 0
+
+    fun setCurrentUserId(userId: Long) {
+        if (currentUserId == userId) return
+        currentUserId = userId
+        notifyItemRangeChanged(0, itemCount)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val binding = CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return PostViewHolder(binding, onInteractionListener)
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        getItem(position)?.let(holder::bind)
+        getItem(position)?.let { post ->
+            holder.bind(post, currentUserId)
+        }
     }
 }
 
@@ -40,13 +50,15 @@ class PostViewHolder(
     private val onInteractionListener: OnInteractionListener,
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(post: Post) {
+    fun bind(post: Post, currentUserId: Long) {
         binding.apply {
             author.text = post.author
-            published.text = post.published
+            published.text = post.published.toString()
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
+            menu.isVisible = post.ownedByMe ||
+                (currentUserId != 0L && post.authorId == currentUserId)
 
             syncStatus.isVisible = !post.isSynced
             retrySave.isVisible = !post.isSynced

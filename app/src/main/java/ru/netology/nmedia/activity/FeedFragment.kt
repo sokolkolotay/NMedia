@@ -86,7 +86,8 @@ class FeedFragment : Fragment() {
         binding.retryButton.setOnClickListener { adapter.retry() }
 
         // Повторный запрос первой страницы после login/logout.
-        viewModel.authState.observe(viewLifecycleOwner) {
+        viewModel.authState.observe(viewLifecycleOwner) { authState ->
+            adapter.setCurrentUserId(authState.id)
             adapter.refresh()
         }
 

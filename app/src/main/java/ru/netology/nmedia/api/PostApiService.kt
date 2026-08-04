@@ -74,7 +74,7 @@ interface PostApiService {
     ): Response<Token>
 
 
-    @POST("${BuildConfig.BASE_URL}api/push-tokens")
+    @POST("${BuildConfig.BASE_URL}api/users/push-tokens")
     suspend fun sendPushToken(
         @Body pushToken: PushToken
     ): Response<Unit>

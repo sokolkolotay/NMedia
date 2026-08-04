@@ -10,10 +10,12 @@ import ru.netology.nmedia.dto.Post
 data class PostEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
+    val authorId: Long = 0,
     val author: String,
     val content: String,
-    val published: String,
+    val published: Long,
     val likedByMe: Boolean,
+    val ownedByMe: Boolean = false,
     val likes: Int = 0,
     val isSynced: Boolean = true,
     val hidden: Boolean = false,
@@ -21,7 +23,7 @@ data class PostEntity(
     val attachmentType: AttachmentType? = null,
 ) {
     fun toDto() = Post(
-        id, author, content, published, likedByMe, likes, isSynced,
+        id, authorId, author, content, published, likedByMe, ownedByMe, likes, isSynced,
         attachment = if (attachmentUrl != null && attachmentType != null)
             Attachment(attachmentUrl, attachmentType)
         else null
@@ -31,10 +33,12 @@ data class PostEntity(
         fun fromDto(dto: Post, hidden: Boolean = false) =
             PostEntity(
                 dto.id,
+                dto.authorId,
                 dto.author,
                 dto.content,
                 dto.published,
                 dto.likedByMe,
+                dto.ownedByMe,
                 dto.likes,
                 dto.isSynced,
                 hidden,

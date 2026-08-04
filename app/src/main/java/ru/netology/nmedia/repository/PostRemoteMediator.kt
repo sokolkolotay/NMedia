@@ -19,74 +19,78 @@ class PostRemoteMediator(
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, PostEntity>,
-    ): MediatorResult = try {
-        val keyDao = db.postRemoteKeyDao()
-
-        val response = when (loadType) {
-            LoadType.REFRESH -> api.getLatest(state.config.initialLoadSize)
-            LoadType.PREPEND -> {
-                val id = keyDao.get(PostRemoteKeyEntity.AFTER)
-                    ?: return MediatorResult.Success(endOfPaginationReached = false)
-                api.getAfter(id, state.config.pageSize)
-            }
-            LoadType.APPEND -> {
-                val id = keyDao.get(PostRemoteKeyEntity.BEFORE)
-                    ?: return MediatorResult.Success(endOfPaginationReached = false)
-                api.getBefore(id, state.config.pageSize)
-            }
+    ): MediatorResult {
+        // Новые посты загружаются только явным REFRESH, а не скроллом вверх.
+        if (loadType == LoadType.PREPEND) {
+            return MediatorResult.Success(endOfPaginationReached = true)
         }
 
-        if (!response.isSuccessful) {
-            throw RuntimeException("HTTP ${response.code()}: ${response.message()}")
-        }
+        return try {
+            val postDao = db.postDao()
+            val keyDao = db.postRemoteKeyDao()
+            val topId = if (loadType == LoadType.REFRESH) postDao.getMaxId() else null
 
-        val posts = response.body()
-            ?: throw RuntimeException("Response body is null")
-
-        db.withTransaction {
-            if (loadType == LoadType.REFRESH) {
-                keyDao.removeAll()
-                db.postDao().removeAll()
+            val response = when (loadType) {
+                LoadType.REFRESH -> if (topId == null) {
+                    api.getLatest(state.config.initialLoadSize)
+                } else {
+                    api.getAfter(topId, state.config.initialLoadSize)
+                }
+                LoadType.APPEND -> {
+                    val bottomId = keyDao.get(PostRemoteKeyEntity.BEFORE)
+                        ?: postDao.getMinId()
+                        ?: return MediatorResult.Success(endOfPaginationReached = true)
+                    api.getBefore(bottomId, state.config.pageSize)
+                }
+                LoadType.PREPEND -> error("PREPEND is disabled")
             }
 
-            if (posts.isNotEmpty()) {
-                when (loadType) {
-                    LoadType.REFRESH -> {
-                        keyDao.insert(
-                            PostRemoteKeyEntity(
-                                PostRemoteKeyEntity.AFTER,
-                                posts.first().id,
-                            )
-                        )
-                        keyDao.insert(
+            if (!response.isSuccessful) {
+                throw RuntimeException("HTTP ${response.code()}: ${response.message()}")
+            }
+
+            val posts = response.body()
+                ?: throw RuntimeException("Response body is null")
+
+            db.withTransaction {
+                if (posts.isNotEmpty()) {
+                    postDao.insert(
+                        posts.map { PostEntity.fromDto(it.copy(isSynced = true)) }
+                    )
+
+                    when (loadType) {
+                        LoadType.REFRESH -> {
+                            // При первом запуске запоминаем нижнюю границу кеша.
+                            // При следующих REFRESH она не меняется: новые посты
+                            // лишь добавляются над уже сохранёнными.
+                            if (keyDao.get(PostRemoteKeyEntity.BEFORE) == null) {
+                                postDao.getMinId()?.let { bottomId ->
+                                    keyDao.insert(
+                                        PostRemoteKeyEntity(
+                                            PostRemoteKeyEntity.BEFORE,
+                                            bottomId,
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        LoadType.APPEND -> keyDao.insert(
                             PostRemoteKeyEntity(
                                 PostRemoteKeyEntity.BEFORE,
                                 posts.last().id,
                             )
                         )
+                        LoadType.PREPEND -> Unit
                     }
-                    LoadType.PREPEND -> keyDao.insert(
-                        PostRemoteKeyEntity(
-                            PostRemoteKeyEntity.AFTER,
-                            posts.first().id,
-                        )
-                    )
-                    LoadType.APPEND -> keyDao.insert(
-                        PostRemoteKeyEntity(
-                            PostRemoteKeyEntity.BEFORE,
-                            posts.last().id,
-                        )
-                    )
                 }
-
-                db.postDao().insert(
-                    posts.map { PostEntity.fromDto(it.copy(isSynced = true)) }
-                )
             }
-        }
 
-        MediatorResult.Success(endOfPaginationReached = posts.isEmpty())
-    } catch (e: Exception) {
-        MediatorResult.Error(e)
+            MediatorResult.Success(
+                endOfPaginationReached =
+                    loadType == LoadType.APPEND && posts.isEmpty()
+            )
+        } catch (e: Exception) {
+            MediatorResult.Error(e)
+        }
     }
 }
