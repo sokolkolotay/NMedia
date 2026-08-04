@@ -13,7 +13,7 @@ import ru.netology.nmedia.dao.PostRemoteKeyDao
 
 @Database(
     entities = [PostEntity::class, PostRemoteKeyEntity::class],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 abstract class AppDb : RoomDatabase() {
@@ -68,6 +68,19 @@ abstract class AppDb : RoomDatabase() {
             }
         }
 
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE PostEntity " +
+                        "ADD COLUMN authorAvatar TEXT"
+                )
+                // Старый серверный кеш не содержит avatar и относится к другому
+                // набору данных. Локальные несинхронизированные посты сохраняем.
+                db.execSQL("DELETE FROM PostEntity WHERE isSynced = 1")
+                db.execSQL("DELETE FROM PostRemoteKeyEntity")
+            }
+        }
+
         @Volatile
         private var instance: AppDb? = null
 
@@ -79,7 +92,12 @@ abstract class AppDb : RoomDatabase() {
 
         private fun buildDatabase(context: Context) =
             Room.databaseBuilder(context, AppDb::class.java, "app.db")
-                .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                .addMigrations(
+                    MIGRATION_6_7,
+                    MIGRATION_7_8,
+                    MIGRATION_8_9,
+                    MIGRATION_9_10,
+                )
                 .fallbackToDestructiveMigration()
                 .allowMainThreadQueries()
                 .build()

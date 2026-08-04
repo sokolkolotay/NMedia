@@ -36,7 +36,11 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override val data = Pager(
-        config = PagingConfig(pageSize = PAGE_SIZE),
+        config = PagingConfig(
+            pageSize = PAGE_SIZE,
+            prefetchDistance = 1,
+            enablePlaceholders = false,
+        ),
         remoteMediator = PostRemoteMediator(api, db),
         pagingSourceFactory = dao::pagingSource,
     ).flow.map { pagingData ->
@@ -44,14 +48,19 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun save(post: Post) {
+        val localPost = if (post.published == 0L) {
+            post.copy(published = System.currentTimeMillis() / 1_000)
+        } else {
+            post
+        }
         val localId = dao.insert(
-            PostEntity.fromDto(post).copy(isSynced = false)
+            PostEntity.fromDto(localPost).copy(isSynced = false)
         )
 
         try {
             val request = Request.Builder()
                 .post(
-                    gson.toJson(post.copy(id = 0))
+                    gson.toJson(localPost.copy(id = 0))
                         .toRequestBody(jsonType)
                 )
                 .url("$BASE_URL/api/slow/posts")
@@ -68,7 +77,10 @@ class PostRepositoryImpl @Inject constructor(
                 }
             }
 
-            dao.updateIdAndSynced(localId, serverPost.id)
+            dao.replaceLocalWithServer(
+                localId,
+                PostEntity.fromDto(serverPost.copy(isSynced = true)),
+            )
         } catch (e: Exception) {
             throw e
         }

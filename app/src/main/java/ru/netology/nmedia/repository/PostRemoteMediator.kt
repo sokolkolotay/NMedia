@@ -20,15 +20,10 @@ class PostRemoteMediator(
         loadType: LoadType,
         state: PagingState<Int, PostEntity>,
     ): MediatorResult {
-        // Новые посты загружаются только явным REFRESH, а не скроллом вверх.
-        if (loadType == LoadType.PREPEND) {
-            return MediatorResult.Success(endOfPaginationReached = true)
-        }
-
         return try {
             val postDao = db.postDao()
             val keyDao = db.postRemoteKeyDao()
-            val topId = if (loadType == LoadType.REFRESH) postDao.getMaxId() else null
+            val topId = postDao.getMaxId()
 
             val response = when (loadType) {
                 LoadType.REFRESH -> if (topId == null) {
@@ -42,7 +37,12 @@ class PostRemoteMediator(
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
                     api.getBefore(bottomId, state.config.pageSize)
                 }
-                LoadType.PREPEND -> error("PREPEND is disabled")
+                LoadType.PREPEND -> {
+                    val afterId = keyDao.get(PostRemoteKeyEntity.AFTER)
+                        ?: topId
+                        ?: return MediatorResult.Success(endOfPaginationReached = true)
+                    api.getAfter(afterId, state.config.pageSize)
+                }
             }
 
             if (!response.isSuccessful) {
@@ -73,6 +73,14 @@ class PostRemoteMediator(
                                     )
                                 }
                             }
+                            posts.firstOrNull()?.id?.let { newTopId ->
+                                keyDao.insert(
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.AFTER,
+                                        newTopId,
+                                    )
+                                )
+                            }
                         }
                         LoadType.APPEND -> keyDao.insert(
                             PostRemoteKeyEntity(
@@ -80,14 +88,21 @@ class PostRemoteMediator(
                                 posts.last().id,
                             )
                         )
-                        LoadType.PREPEND -> Unit
+                        LoadType.PREPEND -> keyDao.insert(
+                            PostRemoteKeyEntity(
+                                PostRemoteKeyEntity.AFTER,
+                                posts.first().id,
+                            )
+                        )
                     }
                 }
             }
 
             MediatorResult.Success(
-                endOfPaginationReached =
-                    loadType == LoadType.APPEND && posts.isEmpty()
+                endOfPaginationReached = when (loadType) {
+                    LoadType.REFRESH -> false
+                    LoadType.PREPEND, LoadType.APPEND -> posts.isEmpty()
+                }
             )
         } catch (e: Exception) {
             MediatorResult.Error(e)

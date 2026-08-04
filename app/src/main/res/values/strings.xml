@@ -36,4 +36,7 @@
     <string name="password">Password</string>
     <string name="confirm_password">Confirm password</string>
     <string name="name">Name</string>
+    <string name="period_today">Today</string>
+    <string name="period_yesterday">Yesterday</string>
+    <string name="period_last_week">Last week</string>
 </resources>

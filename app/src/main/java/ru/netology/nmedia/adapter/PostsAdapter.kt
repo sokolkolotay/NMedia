@@ -10,8 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.databinding.ItemTimeSeparatorBinding
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.FeedItem
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
@@ -24,7 +26,7 @@ interface OnInteractionListener {
 
 class PostsAdapter(
     private val onInteractionListener: OnInteractionListener,
-) : PagingDataAdapter<Post, PostViewHolder>(PostDiffCallback()) {
+) : PagingDataAdapter<FeedItem, RecyclerView.ViewHolder>(FeedItemDiffCallback()) {
     private var currentUserId: Long = 0
 
     fun setCurrentUserId(userId: Long) {
@@ -33,15 +35,57 @@ class PostsAdapter(
         notifyItemRangeChanged(0, itemCount)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        val binding = CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PostViewHolder(binding, onInteractionListener)
+    override fun getItemViewType(position: Int): Int = when (getItem(position)) {
+        is FeedItem.PostItem -> R.layout.card_post
+        is FeedItem.SeparatorItem -> R.layout.item_time_separator
+        null -> R.layout.card_post
     }
 
-    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        getItem(position)?.let { post ->
-            holder.bind(post, currentUserId)
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): RecyclerView.ViewHolder = when (viewType) {
+        R.layout.card_post -> {
+            val binding = CardPostBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false,
+            )
+            PostViewHolder(binding, onInteractionListener)
         }
+        R.layout.item_time_separator -> {
+            val binding = ItemTimeSeparatorBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false,
+            )
+            TimeSeparatorViewHolder(binding)
+        }
+        else -> error("Unknown view type: $viewType")
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val item = getItem(position)) {
+            is FeedItem.PostItem -> (holder as PostViewHolder)
+                .bind(item.post, currentUserId)
+            is FeedItem.SeparatorItem -> (holder as TimeSeparatorViewHolder)
+                .bind(item.period)
+            null -> Unit
+        }
+    }
+}
+
+class TimeSeparatorViewHolder(
+    private val binding: ItemTimeSeparatorBinding,
+) : RecyclerView.ViewHolder(binding.root) {
+    fun bind(period: FeedItem.Period) {
+        binding.title.setText(
+            when (period) {
+                FeedItem.Period.TODAY -> R.string.period_today
+                FeedItem.Period.YESTERDAY -> R.string.period_yesterday
+                FeedItem.Period.LAST_WEEK -> R.string.period_last_week
+            }
+        )
     }
 }
 
@@ -54,6 +98,12 @@ class PostViewHolder(
         binding.apply {
             author.text = post.author
             published.text = post.published.toString()
+            Glide.with(avatar)
+                .load(post.authorAvatar?.let { "http://10.0.2.2:9999/avatars/$it" })
+                .placeholder(R.drawable.ic_netology_original_48dp)
+                .error(R.drawable.ic_netology_original_48dp)
+                .circleCrop()
+                .into(avatar)
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
@@ -114,12 +164,16 @@ class PostViewHolder(
     }
 }
 
-class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
-    override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
-        return oldItem.id == newItem.id
-    }
+class FeedItemDiffCallback : DiffUtil.ItemCallback<FeedItem>() {
+    override fun areItemsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean =
+        when {
+            oldItem is FeedItem.PostItem && newItem is FeedItem.PostItem ->
+                oldItem.post.id == newItem.post.id
+            oldItem is FeedItem.SeparatorItem && newItem is FeedItem.SeparatorItem ->
+                oldItem.period == newItem.period
+            else -> false
+        }
 
-    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
-        return oldItem == newItem
-    }
+    override fun areContentsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean =
+        oldItem == newItem
 }

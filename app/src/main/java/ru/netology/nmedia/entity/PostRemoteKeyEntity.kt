@@ -10,6 +10,7 @@ data class PostRemoteKeyEntity(
     val postId: Long,
 ) {
     companion object {
+        const val AFTER = "AFTER"
         const val BEFORE = "BEFORE"
     }
 }

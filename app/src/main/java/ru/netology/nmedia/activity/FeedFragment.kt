@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
+import ru.netology.nmedia.adapter.PostsLoadStateAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
@@ -61,7 +62,10 @@ class FeedFragment : Fragment() {
             }
         })
 
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostsLoadStateAdapter(adapter::retry),
+            footer = PostsLoadStateAdapter(adapter::retry),
+        )
         binding.newPostsBanner.isVisible = false
 
         viewLifecycleOwner.lifecycleScope.launch {

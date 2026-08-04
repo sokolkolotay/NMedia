@@ -12,6 +12,7 @@ data class PostEntity(
     val id: Long,
     val authorId: Long = 0,
     val author: String,
+    val authorAvatar: String? = null,
     val content: String,
     val published: Long,
     val likedByMe: Boolean,
@@ -23,7 +24,16 @@ data class PostEntity(
     val attachmentType: AttachmentType? = null,
 ) {
     fun toDto() = Post(
-        id, authorId, author, content, published, likedByMe, ownedByMe, likes, isSynced,
+        id = id,
+        authorId = authorId,
+        author = author,
+        authorAvatar = authorAvatar,
+        content = content,
+        published = published,
+        likedByMe = likedByMe,
+        ownedByMe = ownedByMe,
+        likes = likes,
+        isSynced = isSynced,
         attachment = if (attachmentUrl != null && attachmentType != null)
             Attachment(attachmentUrl, attachmentType)
         else null
@@ -32,16 +42,17 @@ data class PostEntity(
     companion object {
         fun fromDto(dto: Post, hidden: Boolean = false) =
             PostEntity(
-                dto.id,
-                dto.authorId,
-                dto.author,
-                dto.content,
-                dto.published,
-                dto.likedByMe,
-                dto.ownedByMe,
-                dto.likes,
-                dto.isSynced,
-                hidden,
+                id = dto.id,
+                authorId = dto.authorId,
+                author = dto.author,
+                authorAvatar = dto.authorAvatar,
+                content = dto.content,
+                published = dto.published,
+                likedByMe = dto.likedByMe,
+                ownedByMe = dto.ownedByMe,
+                likes = dto.likes,
+                isSynced = dto.isSynced,
+                hidden = hidden,
                 attachmentUrl = dto.attachment?.url,
                 attachmentType = dto.attachment?.type,
             )

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.paging.PagingSource
 import ru.netology.nmedia.entity.PostEntity
 
@@ -41,10 +42,16 @@ interface PostDao {
     @Query("DELETE FROM PostEntity WHERE id = :id")
     suspend fun removeById(id: Long)
 
-    @Query("SELECT MAX(id) FROM PostEntity")
+    @Transaction
+    suspend fun replaceLocalWithServer(localId: Long, serverPost: PostEntity) {
+        removeById(localId)
+        insert(serverPost)
+    }
+
+    @Query("SELECT MAX(id) FROM PostEntity WHERE isSynced = 1")
     suspend fun getMaxId(): Long?
 
-    @Query("SELECT MIN(id) FROM PostEntity")
+    @Query("SELECT MIN(id) FROM PostEntity WHERE isSynced = 1")
     suspend fun getMinId(): Long?
 
 }
