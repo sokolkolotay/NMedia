@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="colorPrimary">#FFD54F</color>
+    <color name="colorPrimaryDark">#F9A825</color>
+    <color name="colorAccent">#F9A825</color>
+    <color name="album_yellow">#FFD54F</color>
+    <color name="album_yellow_dark">#F5B900</color>
+    <color name="surface">#FFFBFE</color>
+    <color name="music_text">#211F24</color>
+    <color name="music_secondary">#716E75</color>
+    <color name="music_accent">#8A6500</color>
+    <color name="music_divider">#E8E2E9</color>
+    <color name="track_selected">#FFF4C8</color>
+    <color name="transparent">#00000000</color>
 </resources>

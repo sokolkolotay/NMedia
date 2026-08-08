@@ -1,24 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NMedia</string>
-    <string name="hello">Hello World!</string>
-    <string name="description_post_author_avatar">Post author avatar</string>
-    <string name="description_post_menu">Post menu</string>
-    <string name="description_post_like">Like</string>
-    <string name="description_post_share">Share</string>
-    <string name="description_post_save">Save</string>
-    <string name="menu_remove">Remove</string>
-    <string name="post_text">Post Text</string>
-    <string name="menu_edit">Edit</string>
-    <string name="error_empty_content">Content can\'t be empty</string>
-    <string name="chooser_share_post">Share post</string>
-    <string name="add_post">Add post</string>
-    <string name="retry_loading">Retry</string>
-    <string name="empty_posts">There are no posts.\nIf you create a new post, it will appear here</string>
-    <string name="error_loading">Something went wrong. Try again later</string>
-    <string name="save">Save</string>
-    <string name="google_play_unavailable">Google Api Unavailable</string>
-    <string name="notification_user_liked">User %1$s liked %2$s\'s post</string>
-    <string name="channel_remote_name">Server notifications</string>
-    <string name="channel_remote_description">Notifications from remote server</string>
-    <string name="description_post_sync_status">The post is out of sync</string>
+    <string name="app_name">Single Album</string>
+    <string name="album_label">ALBUM</string>
+    <string name="album_cover">Album cover</string>
+    <string name="album_meta">%1$s · %2$s · %3$s</string>
+    <plurals name="track_count">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="play_track">Play %1$s</string>
+    <string name="pause_track">Pause %1$s</string>
+    <string name="previous_track">Previous track</string>
+    <string name="next_track">Next track</string>
+    <string name="now_playing">Playing</string>
+    <string name="now_playing_track">Playing: %1$s</string>
+    <string name="paused">Paused</string>
+    <string name="paused_track">Paused: %1$s</string>
+    <string name="buffering">Loading…</string>
+    <string name="buffering_track">Loading: %1$s</string>
+    <string name="ready_to_play">Choose a track or play the album</string>
+    <string name="playback_error">Playback error: %1$s</string>
+    <string name="load_error_title">Could not load the album</string>
+    <string name="load_error_details">Check your internet connection. %1$s</string>
+    <string name="retry">Try again</string>
 </resources>
