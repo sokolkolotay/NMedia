@@ -1,25 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NMedia</string>
-    <string name="hello">Привет, Мир!</string>
-    <string name="description_post_author_avatar">Аватар автора поста</string>
-    <string name="description_post_menu">Меню поста</string>
-    <string name="description_post_like">Нравится</string>
-    <string name="description_post_share">Поделиться</string>
-    <string name="description_post_save">Сохранить</string>
-    <string name="menu_edit">Изменить</string>
-    <string name="menu_remove">Удалить</string>
-    <string name="post_text">Текст поста</string>
-    <string name="error_empty_content">Контент не может быть пустым</string>
-    <string name="chooser_share_post">Поделиться</string>
-    <string name="add_post">Добавить пост</string>
-    <string name="retry_loading">Повторить</string>
-    <string name="empty_posts">Постов нет.\nЕсли создадите новый пост, то он появится здесь</string>
-    <string name="error_loading">Что-то пошло не так. Попробуйте позднее</string>
+    <string name="app_name">Места России</string>
+    <string name="map_title">Мои места</string>
+    <string name="map_hint">Нажмите на карту, чтобы добавить место</string>
+    <string name="saved_places">Сохранённые места</string>
+    <string name="no_saved_places">Сохранённых мест пока нет.\nНажмите на карту, чтобы добавить первое.</string>
+    <string name="new_place">Новое место</string>
+    <string name="edit_place">Редактирование места</string>
+    <string name="place_title">Название</string>
+    <string name="place_description">Описание</string>
+    <string name="title_required">Введите название</string>
     <string name="save">Сохранить</string>
-    <string name="google_play_unavailable">Google Api Недоступно</string>
-    <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
-    <string name="channel_remote_name">Уведомления с сервера</string>
-    <string name="channel_remote_description">Уведомления с удалённого сервера</string>
-    <string name="description_post_sync_status">Пост не синхронизирован</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
+    <string name="delete_place">Удалить место?</string>
+    <string name="delete_place_confirmation">«%1$s» будет удалено с устройства без возможности восстановления.</string>
+    <string name="place_deleted">Место удалено</string>
+    <string name="coordinates_format">%1$.5f, %2$.5f</string>
 </resources>

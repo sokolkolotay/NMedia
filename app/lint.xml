@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- MapKit 4.42.0 declares FINE_LOCATION in its AAR. The application removes
+         that permission from the merged manifest because location is not used. -->
+    <issue id="CoarseFineLocation">
+        <ignore regexp=".*maps\.mobile.*AndroidManifest\.xml" />
+    </issue>
+</lint>
